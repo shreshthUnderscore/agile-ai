@@ -50,7 +50,8 @@ class GetUserResponse(BaseModel):
     user: UserWithId
 
 class UpdateUserRequest(BaseModel):
-    # moved to path parameters
+    # moved to path parameters as i have no idea how to accept both body data and path parameters
+    # in single pydantic model
     # user_id: uuid.UUID
     user: UserWithoutId
 

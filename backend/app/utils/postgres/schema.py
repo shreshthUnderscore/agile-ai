@@ -6,18 +6,13 @@ from .base import DatabaseBase
 from sqlalchemy import (
     Column,
     String,
-    VARCHAR,
     UUID,
-    PrimaryKeyConstraint,
-    UniqueConstraint,
-    ForeignKeyConstraint,
-    Boolean,
-    DateTime,
     Enum,
-    Integer,
+    ForeignKey,
 )
 from app.config import get_settings
-from app.utils.models import UserRole
+from sqlalchemy.orm import relationship
+from app.utils.models import UserRole, TaskStatus, TaskPriority
 
 settings = get_settings()
 
@@ -30,3 +25,19 @@ class Users(DatabaseBase):
     notes = Column(String, nullable=True)
     minio_resume_id = Column(UUID(as_uuid=True), nullable=False)
     role = Column(Enum(UserRole), nullable=False)
+
+    # relationship to tasks
+    tasks = relationship("Tasks", back_populates="assignee")
+
+class Tasks(DatabaseBase):
+    __tablename__ = "tasks"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    assignee_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.TODO)
+    priority = Column(Enum(TaskPriority), nullable=False, default=TaskPriority.MEDIUM)
+
+    # relationship to users
+    assignee = relationship("Users", back_populates="tasks")
