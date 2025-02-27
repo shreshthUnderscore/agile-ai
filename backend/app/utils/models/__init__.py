@@ -27,15 +27,12 @@ from .kanban import (
     GetTasksResponse,
     GetTaskRequest,
     GetTaskResponse,
-    UpdateTaskRequest,
-    UpdateTaskResponse,
     DeleteTaskRequest,
-    TaskFilters,
-    TaskStatusCount,
-    TaskStatusCountsResponse,
     UpdateTaskStatusRequest,
     UpdateTaskAssigneeRequest,
     UpdateTaskPriorityRequest,
+    UpdateTaskTitleRequest,
+    UpdateTaskDescriptionRequest,
 )
 
 __all__ = [
@@ -65,13 +62,10 @@ __all__ = [
     "GetTasksResponse",
     "GetTaskRequest",
     "GetTaskResponse",
-    "UpdateTaskRequest",
-    "UpdateTaskResponse",
     "DeleteTaskRequest",
-    "TaskFilters",
-    "TaskStatusCount",
-    "TaskStatusCountsResponse",
     "UpdateTaskStatusRequest",
     "UpdateTaskAssigneeRequest",
     "UpdateTaskPriorityRequest",
+    "UpdateTaskTitleRequest",
+    "UpdateTaskDescriptionRequest",
 ]

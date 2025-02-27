@@ -52,12 +52,6 @@ class GetTaskRequest(BaseModel):
 class GetTaskResponse(BaseModel):
     task: TaskWithId
 
-class UpdateTaskRequest(BaseModel):
-    task: TaskWithoutId
-
-class UpdateTaskResponse(BaseModel):
-    task: TaskWithId
-
 class DeleteTaskRequest(BaseModel):
     task_id: uuid.UUID
     
@@ -68,18 +62,6 @@ class DeleteTaskRequest(BaseModel):
     ):
         return cls(task_id=task_id)
 
-class TaskFilters(BaseModel):
-    assignee_id: Optional[uuid.UUID] = None
-    priority: Optional[TaskPriority] = None
-    status: Optional[TaskStatus] = None
-
-class TaskStatusCount(BaseModel):
-    status: TaskStatus
-    count: int
-
-class TaskStatusCountsResponse(BaseModel):
-    counts: List[TaskStatusCount]
-
 class UpdateTaskStatusRequest(BaseModel):
     status: TaskStatus
 
@@ -88,3 +70,9 @@ class UpdateTaskAssigneeRequest(BaseModel):
 
 class UpdateTaskPriorityRequest(BaseModel):
     priority: TaskPriority
+
+class UpdateTaskTitleRequest(BaseModel):
+    title: str
+
+class UpdateTaskDescriptionRequest(BaseModel):
+    description: str

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 import uuid
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from app.utils.postgres import Tasks, Users, get_db
 from app.logger import get_logger
 from typing import Optional
@@ -13,15 +12,13 @@ from app.utils.models import (
     GetTasksResponse,
     GetTaskRequest,
     GetTaskResponse,
-    UpdateTaskRequest,
-    UpdateTaskResponse,
     DeleteTaskRequest,
     TaskWithId,
-    TaskStatusCount,
-    TaskStatusCountsResponse,
     UpdateTaskStatusRequest,
     UpdateTaskAssigneeRequest,
     UpdateTaskPriorityRequest,
+    UpdateTaskTitleRequest,
+    UpdateTaskDescriptionRequest,
 )
 
 router = APIRouter(
@@ -120,42 +117,6 @@ async def get_tasks(
             detail="Failed to retrieve tasks"
         )
 
-@router.get("/status-counts")
-async def get_task_status_counts(
-    assignee_id: Optional[uuid.UUID] = None,
-    db: Session = Depends(get_db)
-) -> TaskStatusCountsResponse:
-    """Get count of tasks by status"""
-    try:
-        query = db.query(Tasks.status, func.count(Tasks.id).label('count'))
-        
-        # Filter by assignee if provided
-        if assignee_id:
-            query = query.filter(Tasks.assignee_id == assignee_id)
-            
-        # Group by status
-        status_counts = query.group_by(Tasks.status).all()
-        
-        # Convert to response model
-        counts = []
-        for status, count in status_counts:
-            counts.append(TaskStatusCount(status=status, count=count))
-            
-        # Ensure all statuses are represented, even with zero count
-        existing_statuses = {count.status for count in counts}
-        for status in TaskStatus:
-            if status not in existing_statuses:
-                counts.append(TaskStatusCount(status=status, count=0))
-                
-        return TaskStatusCountsResponse(counts=counts)
-    
-    except Exception as e:
-        logger.error(f"Error retrieving task status counts: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve task status counts"
-        )
-
 @router.get("/{task_id}")
 async def get_task(
     request: GetTaskRequest = Depends(GetTaskRequest.query_params),
@@ -189,64 +150,6 @@ async def get_task(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve task"
-        )
-
-@router.put("/{task_id}")
-async def update_task(
-    task_id: uuid.UUID,
-    request: UpdateTaskRequest,
-    db: Session = Depends(get_db)
-) -> UpdateTaskResponse:
-    """Update a task"""
-    try:
-        db_task = db.query(Tasks).filter(Tasks.id == task_id).first()
-        
-        if db_task is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found"
-            )
-        
-        # Verify assignee exists if changed
-        if request.task.assignee_id != db_task.assignee_id:
-            user = db.query(Users).filter(Users.id == request.task.assignee_id).first()
-            if not user:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Assignee not found"
-                )
-        
-        task_data = request.task
-        
-        # Update task data
-        db_task.title = task_data.title
-        db_task.description = task_data.description
-        db_task.assignee_id = task_data.assignee_id
-        db_task.status = task_data.status
-        db_task.priority = task_data.priority
-        
-        db.commit()
-        db.refresh(db_task)
-        
-        return UpdateTaskResponse(
-            task=TaskWithId(
-                id=db_task.id,
-                title=db_task.title,
-                description=db_task.description,
-                assignee_id=db_task.assignee_id,
-                status=db_task.status,
-                priority=db_task.priority,
-            )
-        )
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error updating task: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update task"
         )
 
 @router.patch("/{task_id}/status")
@@ -372,6 +275,84 @@ async def update_task_priority(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update task priority"
+        )
+
+@router.patch("/{task_id}/title")
+async def update_task_title(
+    task_id: uuid.UUID,
+    request: UpdateTaskTitleRequest,
+    db: Session = Depends(get_db)
+) -> TaskWithId:
+    """Update a task's title"""
+    try:
+        db_task = db.query(Tasks).filter(Tasks.id == task_id).first()
+        
+        if db_task is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Task not found"
+            )
+        
+        db_task.title = request.title
+        db.commit()
+        db.refresh(db_task)
+        
+        return TaskWithId(
+            id=db_task.id,
+            title=db_task.title,
+            description=db_task.description,
+            assignee_id=db_task.assignee_id,
+            status=db_task.status,
+            priority=db_task.priority,
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating task title: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update task title"
+        )
+
+@router.patch("/{task_id}/description")
+async def update_task_description(
+    task_id: uuid.UUID,
+    request: UpdateTaskDescriptionRequest,
+    db: Session = Depends(get_db)
+) -> TaskWithId:
+    """Update a task's description"""
+    try:
+        db_task = db.query(Tasks).filter(Tasks.id == task_id).first()
+        
+        if db_task is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Task not found"
+            )
+        
+        db_task.description = request.description
+        db.commit()
+        db.refresh(db_task)
+        
+        return TaskWithId(
+            id=db_task.id,
+            title=db_task.title,
+            description=db_task.description,
+            assignee_id=db_task.assignee_id,
+            status=db_task.status,
+            priority=db_task.priority,
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating task description: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update task description"
         )
 
 @router.delete("/{task_id}")
