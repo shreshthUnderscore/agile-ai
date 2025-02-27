@@ -2,6 +2,15 @@ import uuid
 from pydantic import BaseModel, EmailStr, AnyHttpUrl
 from fastapi import Path
 from typing import List
+from enum import Enum
+
+class UserRole(str, Enum):
+    FRONTEND = "frontend"
+    BACKEND = "backend"
+    FULLSTACK = "fullstack"
+    DEVOPS = "devops"
+    QA = "qa"
+    DESIGNER = "designer"
 
 class UserWithId(BaseModel):
     id: uuid.UUID
@@ -9,12 +18,14 @@ class UserWithId(BaseModel):
     email: EmailStr
     notes: str
     minio_resume_id: str
+    role: UserRole
 
 class UserWithoutId(BaseModel):
     name: str
     email: EmailStr
     notes: str
     minio_resume_id: str
+    role: UserRole
 
 class CreateUserRequest(BaseModel):
     user: UserWithoutId

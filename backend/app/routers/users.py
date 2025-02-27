@@ -6,6 +6,7 @@ from app.utils.postgres import Users, get_db
 from app.utils.minio import get_minio_client, MinioClient
 from app.logger import get_logger
 from app.utils.models import (
+    UserRole,
     CreateUserRequest,
     CreateUserResponse,
     GetUsersResponse,
@@ -38,7 +39,8 @@ async def create_user(
             name=user_data.name,
             email=user_data.email,
             notes=user_data.notes,
-            minio_resume_id=user_data.minio_resume_id
+            minio_resume_id=user_data.minio_resume_id,
+            role=user_data.role
         )
         
         db.add(db_user)
@@ -51,7 +53,8 @@ async def create_user(
                 name=db_user.name,
                 email=db_user.email,
                 notes=db_user.notes,
-                minio_resume_id=db_user.minio_resume_id
+                minio_resume_id=db_user.minio_resume_id,
+                role=db_user.role
             )
         )
 
@@ -83,7 +86,8 @@ async def get_all_users(
             name=user.name,
             email=user.email,
             notes=user.notes or "",
-            minio_resume_id=user.minio_resume_id
+            minio_resume_id=user.minio_resume_id,
+            role=user.role
         ) for user in db_users]
         
         return GetUsersResponse(users=users)
@@ -116,7 +120,8 @@ async def get_user(
                 name=db_user.name,
                 email=db_user.email,
                 notes=db_user.notes or "",
-                minio_resume_id=db_user.minio_resume_id
+                minio_resume_id=db_user.minio_resume_id,
+                role=db_user.role
             )
         )
     
@@ -159,6 +164,7 @@ async def update_user(
         db_user.email = user_data.email
         db_user.notes = user_data.notes
         db_user.minio_resume_id = user_data.minio_resume_id
+        db_user.role = user_data.role
         
         db.commit()
         db.refresh(db_user)
@@ -169,7 +175,8 @@ async def update_user(
                 name=db_user.name,
                 email=db_user.email,
                 notes=db_user.notes or "",
-                minio_resume_id=db_user.minio_resume_id or ""
+                minio_resume_id=db_user.minio_resume_id or "",
+                role=db_user.role
             )
         )
     

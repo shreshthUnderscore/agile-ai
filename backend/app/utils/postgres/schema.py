@@ -17,6 +17,7 @@ from sqlalchemy import (
     Integer,
 )
 from app.config import get_settings
+from app.utils.models import UserRole
 
 settings = get_settings()
 
@@ -28,3 +29,4 @@ class Users(DatabaseBase):
     email = Column(String, nullable=False, unique=True)
     notes = Column(String, nullable=True)
     minio_resume_id = Column(UUID(as_uuid=True), nullable=False)
+    role = Column(Enum(UserRole), nullable=False)

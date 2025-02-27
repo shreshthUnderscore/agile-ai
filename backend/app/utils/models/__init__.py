@@ -1,4 +1,5 @@
 from .users import (
+    UserRole,
     UserWithId,
     UserWithoutId,
     CreateUserRequest,
@@ -17,6 +18,7 @@ from .resume import (
 )
 
 __all__ = [
+    "UserRole",
     "UserWithId",
     "UserWithoutId",
     "CreateUserRequest",

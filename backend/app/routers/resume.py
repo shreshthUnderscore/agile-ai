@@ -8,8 +8,8 @@ from app.utils.models import (
 )
 
 router = APIRouter(
-    prefix="/resume",
-    tags=["Resume"],
+    prefix="/resumes",
+    tags=["Resumes"],
 )
 
 logger = get_logger()
@@ -46,7 +46,7 @@ async def get_resume_download_link(
 ) -> ResumeDownloadLinkResponse:
     """Get a download link for a resume stored in MinIO"""
     try:
-        download_url = minio_client.get_download_link(request.minio_resume_id)
+        download_url = minio_client.get_download_link(request.minio_resume_id, request.expiration)
         return ResumeDownloadLinkResponse(download_link=download_url)
     except Exception as e:
         logger.error(f"Failed to generate download link: {str(e)}")
