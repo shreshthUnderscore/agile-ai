@@ -1,0 +1,5 @@
+temp.ipynb
+.env
+poetry.lock
+**/__pycache__/
+app.log
