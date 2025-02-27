@@ -74,6 +74,29 @@ class MinioClient:
             logger.error(f"Error deleting file from MinIO: {e}")
             return False
 
+    def get_download_link(self, file_id: str, expires=3600) -> str:
+        """
+        Generate a presigned URL for downloading a file
+        Args:
+            file_id: The ID of the file
+            expires: Link expiration time in seconds (default 1 hour)
+        Returns:
+            Presigned URL for downloading the file
+        """
+        try:
+            file_name = f"{file_id}.pdf"
+            # Generate a presigned URL
+            url = self.client.presigned_get_object(
+                self.bucket_name,
+                file_name,
+                expires=expires
+            )
+            logger.info(f"Generated download link for file {file_name}")
+            return url
+        except S3Error as e:
+            logger.error(f"Error generating download link: {e}")
+            raise
+
 @lru_cache
 def get_minio_client():
     return MinioClient()

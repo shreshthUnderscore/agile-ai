@@ -1,12 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, File, status, Path
+from fastapi import APIRouter, Depends, HTTPException, Response, status, Path
 import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.utils.postgres import Users, get_db
 from app.utils.minio import get_minio_client, MinioClient
 from app.logger import get_logger
-from app.utils.models.users import (
-    ResumeUploadResponse,
+from app.utils.models import (
     CreateUserRequest,
     CreateUserResponse,
     GetUsersResponse,
@@ -25,30 +24,6 @@ router = APIRouter(
 
 logger = get_logger()
 minio_client = get_minio_client()
-
-@router.post("/upload_resume", status_code=status.HTTP_201_CREATED)
-async def upload_resume(
-    resume: UploadFile = File(...),
-) -> ResumeUploadResponse:
-    """Upload a resume to MinIO storage"""
-    if resume.content_type != "application/pdf":
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Only PDF files are supported"
-        )
-        
-    try:
-        resume_id = await minio_client.upload_file(resume)
-        # TODO: process resume here and save to mongodb
-        return ResumeUploadResponse(
-            minio_resume_id=resume_id
-        )
-    except Exception as e:
-        logger.error(f"Failed to upload resume: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to upload resume"
-        )
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_user(

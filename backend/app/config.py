@@ -18,6 +18,17 @@ class Settings(BaseSettings):
     def get_postgres_uri(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
+    # MongoDB Configuration
+    MONGO_USER: str
+    MONGO_PASSWORD: str
+    MONGO_HOST: str
+    MONGO_PORT: str
+    MONGO_DB: str
+    MONGO_COLLECTION_RESUMES: str
+
+    def get_mongo_uri(self) -> str:
+        return f"mongodb://{self.MONGO_USER}:{self.MONGO_PASSWORD}@{self.MONGO_HOST}:{self.MONGO_PORT}/{self.MONGO_DB}"
+
     # MinIO Configuration
     MINIO_ENDPOINT: str
     MINIO_ACCESS_KEY: str

@@ -1,24 +1,33 @@
 from .users import (
     UserWithId,
     UserWithoutId,
-    ResumeUploadResponse,
     CreateUserRequest,
     CreateUserResponse,
-    GetUsersResponse,
+    GetUserRequest,
     GetUserResponse,
+    GetUsersResponse,
     UpdateUserRequest,
     UpdateUserResponse,
-
+    DeleteUserRequest,
+)
+from .resume import (
+    ResumeUploadResponse,
+    ResumeDownloadLinkRequest,
+    ResumeDownloadLinkResponse,
 )
 
 __all__ = [
     "UserWithId",
     "UserWithoutId",
-    "ResumeUploadResponse",
     "CreateUserRequest",
     "CreateUserResponse",
-    "GetUsersResponse",
+    "GetUserRequest",
     "GetUserResponse",
+    "GetUsersResponse",
     "UpdateUserRequest",
     "UpdateUserResponse",
+    "DeleteUserRequest",
+    "ResumeUploadResponse",
+    "ResumeDownloadLinkRequest",
+    "ResumeDownloadLinkResponse",
 ]

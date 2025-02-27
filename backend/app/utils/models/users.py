@@ -1,5 +1,5 @@
 import uuid
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, AnyHttpUrl
 from fastapi import Path
 from typing import List
 
@@ -14,9 +14,6 @@ class UserWithoutId(BaseModel):
     name: str
     email: EmailStr
     notes: str
-    minio_resume_id: str
-
-class ResumeUploadResponse(BaseModel):
     minio_resume_id: str
 
 class CreateUserRequest(BaseModel):
