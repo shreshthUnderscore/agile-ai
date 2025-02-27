@@ -1,0 +1,79 @@
+import uuid
+from io import BytesIO
+from functools import lru_cache
+from minio import Minio
+from minio.error import S3Error
+from fastapi import UploadFile
+from app.config import get_settings
+from app.logger import get_logger
+
+logger = get_logger()
+settings = get_settings()
+
+class MinioClient:
+    def __init__(self):
+        self.client = Minio(
+            settings.MINIO_ENDPOINT,
+            access_key=settings.MINIO_ACCESS_KEY,
+            secret_key=settings.MINIO_SECRET_KEY,
+            secure=settings.MINIO_SECURE
+        )
+        self.bucket_name = settings.MINIO_BUCKET_NAME
+        self._ensure_bucket_exists()
+
+    def _ensure_bucket_exists(self):
+        """Ensure that the bucket exists, create if it doesn't"""
+        try:
+            if not self.client.bucket_exists(self.bucket_name):
+                self.client.make_bucket(self.bucket_name)
+                logger.info(f"Created bucket: {self.bucket_name}")
+            else:
+                logger.info(f"Bucket {self.bucket_name} already exists")
+        except S3Error as e:
+            logger.error(f"MinIO error: {e}")
+            raise
+
+    async def upload_file(self, file: UploadFile) -> str:
+        """Upload file to MinIO and return the generated ID"""
+        try:
+            # Generate a unique ID for the file
+            file_id = str(uuid.uuid4())
+            file_name = f"{file_id}.pdf"
+            
+            # Get file content
+            file_data = await file.read()
+            file_size = len(file_data)
+            file_stream = BytesIO(file_data)
+            
+            # Upload the file to MinIO
+            self.client.put_object(
+                self.bucket_name,
+                file_name,
+                file_stream,
+                file_size,
+                content_type="application/pdf"
+            )
+            
+            logger.info(f"Successfully uploaded file {file_name} to bucket {self.bucket_name}")
+            return file_id
+            
+        except S3Error as e:
+            logger.error(f"Error uploading file to MinIO: {e}")
+            raise
+        finally:
+            await file.close()
+
+    def delete_file(self, file_id: str) -> bool:
+        """Delete a file from MinIO"""
+        try:
+            file_name = f"{file_id}.pdf"
+            self.client.remove_object(self.bucket_name, file_name)
+            logger.info(f"Successfully deleted file {file_name} from bucket {self.bucket_name}")
+            return True
+        except S3Error as e:
+            logger.error(f"Error deleting file from MinIO: {e}")
+            return False
+
+@lru_cache
+def get_minio_client():
+    return MinioClient()
